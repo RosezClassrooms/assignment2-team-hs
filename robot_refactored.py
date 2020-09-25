@@ -1,51 +1,29 @@
-from abc import ABC, abstractmethod  # For Builder classes
+from abc import ABC, abstractmethod 
 
-# Doesn't need an endless list of arguments when initialized
 class Robot:
-  # Uses a lot of flag logic here:  Is that necessary?
-  # Does the use of this flag logic create other problems?
-  def __init__(self):
-    self.bipedal = False
-    self.quadripedal = False
-    self.wheeled = False
-    self.flying = False
-    self.traversal = []
-    self.detection_systems = []
 
-  # Huge decision statement: why is this not good?
-  # Can we improve this?
+  def __init__(self, bipedal="", quadripedal= "", wheeled="", flying="", traversal=[], detection_systems=[]):
+    self.bipedal = bipedal
+    self.quadripedal = quadripedal
+    self.wheeled = wheeled
+    self.flying = flying
+    self.traversal = traversal
+    self.detection_systems = detection_systems
+
   def __str__(self):
-    string = ""
-    if self.bipedal:
-      string += "BIPEDAL "
-    if self.quadripedal:
-      string += "QUADRIPEDAL "
-    if self.flying:
-      string += "FLYING ROBOT "
-    if self.wheeled:
-      string += "ROBOT ON WHEELS\n"
-    else:
-      string += "ROBOT\n"
 
+    string = f"{self.bipedal}{self.quadripedal}{self.wheeled}{self.flying} ROBOT. \n"
     if self.traversal:
       string += "Traversal modules installed:\n"
-
     for module in self.traversal:
       string += "- " + str(module) + "\n"
-
     if self.detection_systems:
       string += "Detection systems installed:\n"
-
     for system in self.detection_systems:
       string += "- " + str(system) + "\n"
 
     return string
 
-#---------------------------------------------------------------------------
-
-# Concrete classes for componenets
-# In a real application, there would be an endless list of these, each one
-#   composing additional subcomponents
 class BipedalLegs:
   def __str__(self):
     return "two legs"
@@ -82,14 +60,12 @@ class InfraredDetectionSystem:
   def __str__(self):
     return "infrared"
 
-#----------------------------------------------------------------------------
-# Note that this code was place at the top of this program for visibility
-#from abc import ABC, abstractmethod
 
-# The abstract superclass for all the builders
-# We're using inheritence, but it's shallow
 class RobotBuilder(ABC):
     
+  def __init__(self):
+    self.product = Robot()
+
   def reset(self):
     self.product = Robot()
 
@@ -101,99 +77,80 @@ class RobotBuilder(ABC):
   def build_detection_system(self):
     pass
 
+  @abstractmethod
+  def set_type(self):
+    pass
+
   def get_product(self):
     return self.product
     
 # Concrete Builder class:  there would be MANY of these
 class AndroidBuilder(RobotBuilder):
-  def __init__(self):
-    self.product = Robot()
+  
+  def set_type(self):
+    self.product.bipedal = "BIPEDAL"
 
   def build_traversal(self):
-    self.product.bipedal = True
+    self.product.traversal.clear()
+    self.product.detection_systems.clear()
     self.product.traversal.append(BipedalLegs())
     self.product.traversal.append(Arms())
     
-
   def build_detection_system(self):
     self.product.detection_systems.append(CameraDetectionSystem())
     
 # Concrete Builder class:  there would be many of these
 class AutonomousCarBuilder(RobotBuilder):
-  def __init__(self):
-    self.product = Robot()
+
+  def set_type(self):
+    self.product.wheeled = "WHEELED"
 
   def build_traversal(self):
-    self.product.wheeled = True
+    self.product.traversal.clear()
+    self.product.detection_systems.clear()
     self.product.traversal.append(FourWheels())
+    
+  def build_detection_system(self):
+    self.product.detection_systems.append(InfraredDetectionSystem())
+    
+
+#new type of Robot
+class FlyingBattleBot(RobotBuilder):
+
+  def set_type(self):
+    self.product.flying = "FLYING"
+
+  def build_traversal(self):
+    self.product.traversal.clear()
+    self.product.detection_systems.clear()
+    self.product.traversal.append(TwoWheels())
+    self.product.traversal.append(Wings())
+    self.product.traversal.append(Blades())
     
 
   def build_detection_system(self):
     self.product.detection_systems.append(InfraredDetectionSystem())
-
-#new type of Robot
-class FlyingBattleBot(RobotBuilder):
-  def __init__(self):
-    self.product = Robot()
-
-  def build_traversal(self):
-    self.product.wheeled = True
-    self.product.flying = True
-    self.product.traversal.append(TwoWheels())
-    self.product.traversal.append(Wings())
-    self.product.traversal.append(Blades())
-
-  def build_detection_system(self):
-    self.product.detection_systems.append(InfraredDetectionSystem())
     self.product.detection_systems.append(CameraDetectionSystem())
-#-------------------------------------------------------------------------
-'''
-# Remove # in line above to comment out this section when using Director
+  
 
-# Using the builders to create different robots
-builder = AndroidBuilder()
-builder.build_traversal()
-builder.build_detection_system()
-print(builder.get_product())
-
-builder = AutonomousCarBuilder()
-builder.build_traversal()
-builder.build_detection_system()
-print(builder.get_product())
-
-#-------------------------------------------------------
-#  Keep line below whether testing builders or director
-'''
-#-------------------------------------------------------
-
-# Diretor manages all of the Builders
-# Do we need separate make methods?
 class Director:
-    def make_android(self, builder):
+    def make_robot(self, builder):
+        builder.set_type()
         builder.build_traversal()
         builder.build_detection_system()
         return builder.get_product()
 
-    def make_autonomous_car(self, builder):
-        builder.build_traversal()
-        builder.build_detection_system()
-        return builder.get_product()
+def main():
+  director = Director()
 
-    def make_flying_battlebot(self, builder):
-        builder.build_traversal()
-        builder.build_detection_system()
-        return builder.get_product()
+  builder = AndroidBuilder()
+  print(director.make_robot(builder))
 
-director = Director()
+  builder = AutonomousCarBuilder()
+  print(director.make_robot(builder))
 
-builder = AndroidBuilder()
-print(director.make_android(builder))
+  builder = FlyingBattleBot()
+  print(director.make_robot(builder))
 
-builder = AutonomousCarBuilder()
-print(director.make_autonomous_car(builder))
-
-builder = FlyingBattleBot()
-print(director.make_autonomous_car(builder))
-
-# comment out line below when testing director
-
+if __name__ == "__main__":
+  main()
