@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 
 class Robot:
 
-    #Initialized values inside init to prevent the usage of flags. Using Flags inside the init function is bad practice
+    #Initialized values inside init to prevent the usage of flags. 
+    #Using Flags inside the init function is bad practice
     def __init__(self,
                  bipedal="",
                  quadripedal="",
@@ -17,7 +18,8 @@ class Robot:
         self.traversal = traversal
         self.detection_systems = detection_systems
 
-    #Instead of printing by using multiple if statements with flags we decided to get the output directly from the builder thus eliminating the need for a lot of if statements
+    #Instead of printing by using multiple if statements with flags we decided to get the output directly from the builder.
+    #thus eliminating the need for a lot of if statements
     def __str__(self):
 
         string = f"{self.bipedal}{self.quadripedal}{self.wheeled}{self.flying} ROBOT. \n"
@@ -78,7 +80,8 @@ class InfraredDetectionSystem:
         return "infrared"
 
 
-#Moved the init and reset function inside the builder class because they are common among other builder and have no need for reinitialization
+#Moved the init and reset function inside the builder class 
+#because they are common among other builder and have no need for reinitialization
 class RobotBuilder(ABC):
     def __init__(self):
         self.product = Robot()
@@ -94,7 +97,8 @@ class RobotBuilder(ABC):
     def build_detection_system(self):
         pass
 
-    #added a setter method for naming the robot so that we could get rid of all the if statements in the robot class
+    #added a setter method for naming the robot 
+    #so that we could get rid of all the if statements in the robot class
     @abstractmethod
     def set_type(self):
         pass
